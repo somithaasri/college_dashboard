@@ -1,183 +1,310 @@
+import { supabase } from '../lib/supabase';
 import { Student, Faculty, Subject, Timetable, Attendance, AttendanceReport } from '../types';
-import { mockStudents, mockFaculty, mockSubjects, mockTimetable, mockAttendance } from './mockData';
 
 class DataService {
-  private students: Student[] = [...mockStudents];
-  private faculty: Faculty[] = [...mockFaculty];
-  private subjects: Subject[] = [...mockSubjects];
-  private timetable: Timetable[] = [...mockTimetable];
-  private attendance: Attendance[] = [...mockAttendance];
-
   async getStudents(): Promise<Student[]> {
-    return this.students;
+    const { data, error } = await supabase
+      .from('students')
+      .select('*')
+      .order('name');
+
+    if (error) throw error;
+    return data || [];
   }
 
   async getStudentById(id: string): Promise<Student | undefined> {
-    return this.students.find(s => s.student_id === id);
+    const { data, error } = await supabase
+      .from('students')
+      .select('*')
+      .eq('student_id', id)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data || undefined;
   }
 
   async addStudent(student: Omit<Student, 'student_id'>): Promise<Student> {
-    const newStudent: Student = {
-      ...student,
-      student_id: `s${Date.now()}`
-    };
-    this.students.push(newStudent);
-    return newStudent;
+    const { data, error } = await supabase
+      .from('students')
+      .insert([student])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   }
 
-  async updateStudent(id: string, data: Partial<Student>): Promise<Student | null> {
-    const index = this.students.findIndex(s => s.student_id === id);
-    if (index === -1) return null;
-    this.students[index] = { ...this.students[index], ...data };
-    return this.students[index];
+  async updateStudent(id: string, updates: Partial<Student>): Promise<Student | null> {
+    const { data, error } = await supabase
+      .from('students')
+      .update(updates)
+      .eq('student_id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   }
 
   async deleteStudent(id: string): Promise<boolean> {
-    const index = this.students.findIndex(s => s.student_id === id);
-    if (index === -1) return false;
-    this.students.splice(index, 1);
+    const { error } = await supabase
+      .from('students')
+      .delete()
+      .eq('student_id', id);
+
+    if (error) throw error;
     return true;
   }
 
   async getFaculty(): Promise<Faculty[]> {
-    return this.faculty;
+    const { data, error } = await supabase
+      .from('faculty')
+      .select('*')
+      .order('name');
+
+    if (error) throw error;
+    return data || [];
   }
 
   async getFacultyById(id: string): Promise<Faculty | undefined> {
-    return this.faculty.find(f => f.faculty_id === id);
+    const { data, error } = await supabase
+      .from('faculty')
+      .select('*')
+      .eq('faculty_id', id)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data || undefined;
   }
 
   async addFaculty(faculty: Omit<Faculty, 'faculty_id'>): Promise<Faculty> {
-    const newFaculty: Faculty = {
-      ...faculty,
-      faculty_id: `f${Date.now()}`
-    };
-    this.faculty.push(newFaculty);
-    return newFaculty;
+    const { data, error } = await supabase
+      .from('faculty')
+      .insert([faculty])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   }
 
-  async updateFaculty(id: string, data: Partial<Faculty>): Promise<Faculty | null> {
-    const index = this.faculty.findIndex(f => f.faculty_id === id);
-    if (index === -1) return null;
-    this.faculty[index] = { ...this.faculty[index], ...data };
-    return this.faculty[index];
+  async updateFaculty(id: string, updates: Partial<Faculty>): Promise<Faculty | null> {
+    const { data, error } = await supabase
+      .from('faculty')
+      .update(updates)
+      .eq('faculty_id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   }
 
   async deleteFaculty(id: string): Promise<boolean> {
-    const index = this.faculty.findIndex(f => f.faculty_id === id);
-    if (index === -1) return false;
-    this.faculty.splice(index, 1);
+    const { error } = await supabase
+      .from('faculty')
+      .delete()
+      .eq('faculty_id', id);
+
+    if (error) throw error;
     return true;
   }
 
   async getSubjects(): Promise<Subject[]> {
-    return this.subjects;
+    const { data, error } = await supabase
+      .from('subjects')
+      .select('*')
+      .order('subject_name');
+
+    if (error) throw error;
+    return data || [];
   }
 
   async getSubjectById(id: string): Promise<Subject | undefined> {
-    return this.subjects.find(s => s.subject_id === id);
+    const { data, error } = await supabase
+      .from('subjects')
+      .select('*')
+      .eq('subject_id', id)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data || undefined;
   }
 
   async getSubjectsByDepartment(department: string): Promise<Subject[]> {
-    return this.subjects.filter(s => s.department === department);
+    const { data, error } = await supabase
+      .from('subjects')
+      .select('*')
+      .eq('department', department)
+      .order('subject_name');
+
+    if (error) throw error;
+    return data || [];
   }
 
   async getSubjectsByFaculty(facultyId: string): Promise<Subject[]> {
-    return this.subjects.filter(s => s.faculty_id === facultyId);
+    const { data, error } = await supabase
+      .from('subjects')
+      .select('*')
+      .eq('faculty_id', facultyId)
+      .order('subject_name');
+
+    if (error) throw error;
+    return data || [];
   }
 
   async addSubject(subject: Omit<Subject, 'subject_id'>): Promise<Subject> {
-    const newSubject: Subject = {
-      ...subject,
-      subject_id: `sub${Date.now()}`
-    };
-    this.subjects.push(newSubject);
-    return newSubject;
+    const { data, error } = await supabase
+      .from('subjects')
+      .insert([subject])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   }
 
-  async updateSubject(id: string, data: Partial<Subject>): Promise<Subject | null> {
-    const index = this.subjects.findIndex(s => s.subject_id === id);
-    if (index === -1) return null;
-    this.subjects[index] = { ...this.subjects[index], ...data };
-    return this.subjects[index];
+  async updateSubject(id: string, updates: Partial<Subject>): Promise<Subject | null> {
+    const { data, error } = await supabase
+      .from('subjects')
+      .update(updates)
+      .eq('subject_id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   }
 
   async deleteSubject(id: string): Promise<boolean> {
-    const index = this.subjects.findIndex(s => s.subject_id === id);
-    if (index === -1) return false;
-    this.subjects.splice(index, 1);
+    const { error } = await supabase
+      .from('subjects')
+      .delete()
+      .eq('subject_id', id);
+
+    if (error) throw error;
     return true;
   }
 
   async getTimetable(): Promise<Timetable[]> {
-    return this.timetable;
+    const { data, error } = await supabase
+      .from('timetable')
+      .select('*')
+      .order('day');
+
+    if (error) throw error;
+    return data || [];
   }
 
   async getTimetableByDepartment(department: string, year?: number): Promise<Timetable[]> {
-    return this.timetable.filter(t =>
-      t.department === department && (year === undefined || t.year === year)
-    );
+    let query = supabase
+      .from('timetable')
+      .select('*')
+      .eq('department', department);
+
+    if (year !== undefined) {
+      query = query.eq('year', year);
+    }
+
+    const { data, error } = await query.order('day');
+
+    if (error) throw error;
+    return data || [];
   }
 
   async getTimetableByDay(day: string, department?: string): Promise<Timetable[]> {
-    return this.timetable.filter(t =>
-      t.day === day && (department === undefined || t.department === department)
-    );
+    let query = supabase
+      .from('timetable')
+      .select('*')
+      .eq('day', day);
+
+    if (department) {
+      query = query.eq('department', department);
+    }
+
+    const { data, error } = await query.order('time_slot');
+
+    if (error) throw error;
+    return data || [];
   }
 
   async addTimetable(entry: Omit<Timetable, 'timetable_id'>): Promise<Timetable> {
-    const newEntry: Timetable = {
-      ...entry,
-      timetable_id: `t${Date.now()}`
-    };
-    this.timetable.push(newEntry);
-    return newEntry;
+    const { data, error } = await supabase
+      .from('timetable')
+      .insert([entry])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   }
 
-  async updateTimetable(id: string, data: Partial<Timetable>): Promise<Timetable | null> {
-    const index = this.timetable.findIndex(t => t.timetable_id === id);
-    if (index === -1) return null;
-    this.timetable[index] = { ...this.timetable[index], ...data };
-    return this.timetable[index];
+  async updateTimetable(id: string, updates: Partial<Timetable>): Promise<Timetable | null> {
+    const { data, error } = await supabase
+      .from('timetable')
+      .update(updates)
+      .eq('timetable_id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   }
 
   async deleteTimetable(id: string): Promise<boolean> {
-    const index = this.timetable.findIndex(t => t.timetable_id === id);
-    if (index === -1) return false;
-    this.timetable.splice(index, 1);
+    const { error } = await supabase
+      .from('timetable')
+      .delete()
+      .eq('timetable_id', id);
+
+    if (error) throw error;
     return true;
   }
 
   async getAttendance(): Promise<Attendance[]> {
-    return this.attendance;
+    const { data, error } = await supabase
+      .from('attendance')
+      .select('*')
+      .order('date', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
   }
 
   async markAttendance(record: Omit<Attendance, 'attendance_id'>): Promise<Attendance> {
-    const existing = this.attendance.findIndex(
-      a => a.student_id === record.student_id &&
-           a.subject_id === record.subject_id &&
-           a.date === record.date
-    );
+    const { data, error } = await supabase
+      .from('attendance')
+      .upsert([record], {
+        onConflict: 'student_id,subject_id,date',
+        ignoreDuplicates: false
+      })
+      .select()
+      .single();
 
-    if (existing !== -1) {
-      this.attendance[existing] = { ...this.attendance[existing], ...record };
-      return this.attendance[existing];
-    }
-
-    const newRecord: Attendance = {
-      ...record,
-      attendance_id: `a${Date.now()}`
-    };
-    this.attendance.push(newRecord);
-    return newRecord;
+    if (error) throw error;
+    return data;
   }
 
   async getAttendanceByStudent(studentId: string): Promise<Attendance[]> {
-    return this.attendance.filter(a => a.student_id === studentId);
+    const { data, error } = await supabase
+      .from('attendance')
+      .select('*')
+      .eq('student_id', studentId)
+      .order('date', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
   }
 
   async getAttendanceBySubject(subjectId: string): Promise<Attendance[]> {
-    return this.attendance.filter(a => a.subject_id === subjectId);
+    const { data, error } = await supabase
+      .from('attendance')
+      .select('*')
+      .eq('subject_id', subjectId)
+      .order('date', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
   }
 
   async getAttendanceReport(studentId: string): Promise<AttendanceReport[]> {
